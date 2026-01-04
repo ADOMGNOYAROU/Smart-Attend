@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\AuthController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\TestUploadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -10,10 +11,10 @@ use App\Http\Controllers\AttendanceController;
 |--------------------------------------------------------------------------
 */
 
-// Page d'accueil → redirection vers login
+// Page d'accueil → redirection vers le tableau de bord ou la page de connexion
 Route::get('/', function () {
-    return redirect('/login');
-});
+    return auth()->check() ? redirect('/dashboard') : redirect('/login');
+})->name('home');
 
 // Routes publiques (sans authentification)
 Route::middleware('guest')->group(function () {
@@ -23,6 +24,9 @@ Route::middleware('guest')->group(function () {
 
 // Route de débogage
 Route::get('/debug-history', [\App\Http\Controllers\AttendanceController::class, 'history']);
+
+// Route de test d'authentification
+Route::get('/test-auth', [\App\Http\Controllers\TestController::class, 'testAuth']);
 
 // Route de test temporaire
 Route::get('/test-history', function () {
@@ -41,6 +45,11 @@ Route::middleware('auth')->group(function () {
     // Tableau de bord
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     
+    // Alias for admin dashboard
+    Route::get('/admin/dashboard', function () {
+        return redirect()->route('dashboard');
+    });
+    
     // Gestion des pointages - Nouvelles routes
     Route::prefix('attendance')->name('attendance.')->group(function () {
         Route::get('/', [AttendanceController::class, 'index'])->name('index');
@@ -49,25 +58,25 @@ Route::middleware('auth')->group(function () {
         Route::get('/history', [AttendanceController::class, 'history'])->name('history');
     });
     
-    // Gestion des permissions
+        // Gestion des permissions (utilisateur)
     Route::prefix('permissions')->name('permissions.')->group(function () {
         Route::get('/', [\App\Http\Controllers\PermissionController::class, 'index'])->name('index');
         Route::post('/store', [\App\Http\Controllers\PermissionController::class, 'store'])->name('store');
         Route::get('/my-requests', [\App\Http\Controllers\PermissionController::class, 'myRequests'])->name('my-requests');
     });
     
+    // Administration des permissions
+    Route::prefix('admin/permissions')->name('admin.permissions.')->middleware(['auth', 'admin'])->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\PermissionController::class, 'index'])->name('index');
+        Route::get('/history', [\App\Http\Controllers\Admin\PermissionController::class, 'history'])->name('history');
+        Route::get('/{permission}', [\App\Http\Controllers\Admin\PermissionController::class, 'show'])->name('show');
+        Route::post('/{permission}/respond', [\App\Http\Controllers\Admin\PermissionController::class, 'respond'])->name('respond');
+    });
+    
     // Alias pour la compatibilité avec les anciennes routes (redirections)
-    Route::post('/employee/check-in', function () {
-        return redirect()->route('attendance.check-in');
-    })->name('employee.check-in');
-    
-    Route::post('/employee/check-out', function () {
-        return redirect()->route('attendance.check-out');
-    })->name('employee.check-out');
-    
-    Route::get('/employee/history', function () {
-        return redirect()->route('attendance.history');
-    })->name('employee.history');
+    Route::post('/employee/check-in', [AttendanceController::class, 'checkIn'])->name('employee.check-in');
+    Route::post('/employee/check-out', [AttendanceController::class, 'checkOut'])->name('employee.check-out');
+    Route::get('/employee/history', [AttendanceController::class, 'history'])->name('employee.history');
     
     // Redirection de l'ancienne route vers la nouvelle
     Route::get('/employee/dashboard', function () {
@@ -96,4 +105,11 @@ Route::middleware('auth')->group(function () {
             ->name('resend-verification');
         }); // Fin du groupe users
     }); // Fin du groupe admin
+
+    // Routes de test d'upload
+    Route::get('/test-upload', [TestUploadController::class, 'showUploadForm'])->name('test.upload.form');
+    Route::post('/test-upload', [TestUploadController::class, 'upload'])->name('test.upload');
 });
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

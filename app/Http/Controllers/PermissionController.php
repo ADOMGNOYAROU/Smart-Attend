@@ -25,7 +25,7 @@ class PermissionController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'reason' => 'required|string|max:500',
-            'type' => 'required|in:congé,absence,autre',
+            'type' => 'required|in:retard,absence,sortie_anticipee,teletravail,mission_exterieure',
         ]);
 
         $permission = new Permission([
@@ -34,7 +34,7 @@ class PermissionController extends Controller
             'end_date' => $validated['end_date'],
             'reason' => $validated['reason'],
             'type' => $validated['type'],
-            'status' => 'en_attente',
+            'status' => 'pending',
         ]);
 
         $permission->save();
@@ -51,7 +51,7 @@ class PermissionController extends Controller
     {
         $permissions = Auth::user()->permissions()
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10); // 10 éléments par page
 
         return view('permissions.my-requests', compact('permissions'));
     }

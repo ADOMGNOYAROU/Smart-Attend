@@ -27,6 +27,17 @@ class User extends Authenticatable
         'work_start_time',
         'work_end_time',
         'is_active',
+        'is_admin',
+        'avatar',
+    ];
+    
+    /**
+     * Les attributs avec des valeurs par défaut
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'is_admin' => false,
     ];
 
     /**
@@ -47,6 +58,7 @@ class User extends Authenticatable
         'password' => 'hashed', // Laravel 10+ : hashe automatiquement
         'work_start_time' => 'datetime:H:i',
         'work_end_time' => 'datetime:H:i',
+        'is_admin' => 'boolean',
     ];
 
     /*
@@ -96,7 +108,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->is_admin || $this->role === 'admin';
     }
 
     /**

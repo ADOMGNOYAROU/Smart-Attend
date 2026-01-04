@@ -47,6 +47,12 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        \Log::info('Début du traitement de la requête', [
+            'all' => $request->all(),
+            'files' => $request->allFiles(),
+            'hasFile' => $request->hasFile('avatar')
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -57,7 +63,54 @@ class UserController extends Controller
             'department' => 'required|string|max:100',
             'work_start_time' => 'required|date_format:H:i',
             'work_end_time' => 'required|date_format:H:i|after:work_start_time',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+
+        // Gestion de l'upload de l'image
+        $avatarPath = null;
+        if ($request->hasFile('avatar')) {
+            $file = $request->file('avatar');
+            \Log::info('Fichier reçu', [
+                'original_name' => $file->getClientOriginalName(),
+                'extension' => $file->getClientOriginalExtension(),
+                'size' => $file->getSize(),
+                'mime' => $file->getMimeType(),
+                'path' => $file->getPathname(),
+                'real_path' => $file->getRealPath(),
+                'is_valid' => $file->isValid(),
+                'error' => $file->getError(),
+                'error_message' => $file->getErrorMessage()
+            ]);
+            
+            try {
+                $avatarName = time() . '.' . $file->getClientOriginalExtension();
+                $avatarPath = $file->storeAs('avatars', $avatarName, 'public');
+                \Log::info('Tentative d\'enregistrement du fichier', [
+                    'target_path' => storage_path('app/public/avatars/' . $avatarName),
+                    'is_writable' => is_writable(storage_path('app/public/avatars')),
+                    'filesystem' => config('filesystems.default'),
+                    'disk' => config('filesystems.disks.public')
+                ]);
+                
+                $avatarPath = $file->storeAs('avatars', $avatarName, 'public');
+                \Log::info('Fichier enregistré avec succès', [
+                    'path' => $avatarPath,
+                    'full_path' => storage_path('app/public/' . $avatarPath),
+                    'file_exists' => file_exists(storage_path('app/public/' . $avatarPath))
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Erreur lors de l\'enregistrement du fichier', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'storage_path' => storage_path(),
+                    'base_path' => base_path(),
+                    'public_path' => public_path()
+                ]);
+                return back()->withInput()->with('error', 'Erreur lors du téléchargement de l\'image : ' . $e->getMessage());
+            }
+        } else {
+            \Log::info('Aucun fichier reçu ou erreur de téléchargement');
+        }
 
         // Création de l'utilisateur
         $user = User::create([
@@ -70,6 +123,7 @@ class UserController extends Controller
             'department' => $validated['department'],
             'work_start_time' => $validated['work_start_time'],
             'work_end_time' => $validated['work_end_time'],
+            'avatar' => $avatarPath,
         ]);
 
         return redirect()

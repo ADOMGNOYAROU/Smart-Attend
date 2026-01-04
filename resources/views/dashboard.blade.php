@@ -43,7 +43,7 @@
                         </div>
 
                         @if(!$todayAttendance['has_checked_out'])
-                            <form action="{{ route('employee.check-out') }}" method="POST" class="d-inline">
+                            <form action="{{ route('attendance.check-out') }}" method="POST" class="d-inline">
                                 @csrf
                                 <button type="submit" class="btn btn-danger">
                                     <i class="bi bi-box-arrow-right"></i> Pointer la sortie
@@ -56,7 +56,7 @@
                         @endif
                     @else
                         <p class="text-muted">Aucun pointage pour aujourd'hui</p>
-                        <form action="{{ route('employee.check-in') }}" method="POST">
+                        <form action="{{ route('attendance.check-in') }}" method="POST">
                             @csrf
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-box-arrow-in-right"></i> Pointer l'arrivée

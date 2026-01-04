@@ -21,9 +21,11 @@
                             <label for="type" class="col-md-4 col-form-label text-md-right">Type de demande</label>
                             <div class="col-md-6">
                                 <select id="type" class="form-control @error('type') is-invalid @enderror" name="type" required>
-                                    <option value="congé">Congé</option>
+                                    <option value="retard">Retard</option>
                                     <option value="absence">Absence</option>
-                                    <option value="autre">Autre</option>
+                                    <option value="sortie_anticipee">Sortie anticipée</option>
+                                    <option value="teletravail">Télétravail</option>
+                                    <option value="mission_exterieure">Mission extérieure</option>
                                 </select>
 
                                 @error('type')
