@@ -109,6 +109,23 @@ Route::middleware('auth')->group(function () {
     // Routes de test d'upload
     Route::get('/test-upload', [TestUploadController::class, 'showUploadForm'])->name('test.upload.form');
     Route::post('/test-upload', [TestUploadController::class, 'upload'])->name('test.upload');
+    
+    // Routes pour la gestion des codes QR
+    Route::prefix('qrcode')->name('qrcode.')->group(function () {
+        // Pour les administrateurs et les contrôleurs
+        Route::middleware(['auth', \App\Http\Middleware\ControleurMiddleware::class])->group(function () {
+            Route::get('/generate', [\App\Http\Controllers\QRCodeController::class, 'showGenerator'])
+                ->name('generate.form');
+            Route::post('/generate', [\App\Http\Controllers\QRCodeController::class, 'generate'])
+                ->name('generate');
+        });
+        
+        // Pour tous les utilisateurs authentifiés
+        Route::get('/scan/{code}', [\App\Http\Controllers\QRCodeController::class, 'showScan'])
+            ->name('scan');
+        Route::post('/scan/{code}', [\App\Http\Controllers\QRCodeController::class, 'processScan'])
+            ->name('scan.process');
+    });
 });
 Auth::routes();
 

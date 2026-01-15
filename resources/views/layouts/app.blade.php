@@ -15,6 +15,37 @@
             min-height: 100vh;
             background: #343a40;
             color: white;
+            transition: transform 0.3s ease-in-out;
+            position: fixed;
+            z-index: 100;
+            width: 250px;
+            overflow-y: auto;
+        }
+        
+        /* Style pour les écrans mobiles */
+        @media (max-width: 767.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+                height: 100vh;
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+        
+        /* Style pour les écrans plus grands */
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0) !important;
+            }
+            .main-content {
+                margin-left: 250px;
+                width: calc(100% - 250px);
+            }
         }
         .sidebar .nav-link {
             color: rgba(255, 255, 255, 0.8);
@@ -73,9 +104,14 @@
 </head>
 <body>
     <div class="container-fluid">
+        <!-- Bouton de menu mobile -->
+        <button class="btn btn-primary d-md-none position-fixed" id="sidebarToggle" style="z-index: 1000; top: 10px; left: 10px;">
+            <i class="bi bi-list"></i>
+        </button>
+        
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse" id="sidebarMenu">
                 <div class="text-center my-4">
                     <h4 class="text-white">Smart Attend</h4>
                 </div>
@@ -95,6 +131,13 @@
                             <i class="bi bi-calendar-week"></i> Historique
                         </a>
                     </li>
+                    @if(auth()->check() && auth()->user()->isControleur())
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('qrcode*') ? 'active' : '' }}" href="{{ route('qrcode.generate.form') }}">
+                            <i class="bi bi-qr-code"></i> Générer QR Code
+                        </a>
+                    </li>
+                    @endif
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('permissions*') ? 'active' : '' }}" href="{{ url('/permissions') }}">
                             <i class="bi bi-envelope"></i> Demandes
@@ -124,7 +167,7 @@
             </div>
 
             <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+            <main class="col-12 col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                     <h1 class="h2">@yield('title', 'Tableau de bord')</h1>
                     <div class="btn-toolbar mb-2 mb-md-0">
@@ -174,6 +217,66 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Gestion du menu latéral sur mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebarMenu');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            
+            // Fonction pour basculer la barre latérale
+            function toggleSidebar() {
+                if (sidebar.classList.contains('show')) {
+                    sidebar.classList.remove('show');
+                    document.body.style.overflow = 'auto';
+                } else {
+                    sidebar.classList.add('show');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+            
+            // Gestion du clic sur le bouton de menu
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    toggleSidebar();
+                });
+            }
+            
+            // Fermer le menu lors du clic sur un lien
+            const navLinks = document.querySelectorAll('.sidebar .nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 768) { // Seulement sur mobile
+                        toggleSidebar();
+                    }
+                });
+            });
+            
+            // Fermer le menu lors du redimensionnement de la fenêtre
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    if (window.innerWidth >= 768) {
+                        sidebar.classList.remove('show');
+                        document.body.style.overflow = 'auto';
+                    }
+                }, 250);
+            });
+        });
+    </script>
+    
+    <script>
+        // Inclure le jeton CSRF dans toutes les requêtes AJAX
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        
+        // Pour Axios
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    </script>
     <script>
         // Configuration d'Axios pour inclure le jeton CSRF dans les en-têtes
         document.addEventListener('DOMContentLoaded', function() {

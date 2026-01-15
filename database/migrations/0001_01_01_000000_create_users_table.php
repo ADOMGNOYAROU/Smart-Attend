@@ -18,8 +18,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             
-            // Ajouter la colonne "role" (admin ou employee)
-            $table->enum('role', ['admin', 'employee'])->default('employee');
+            // Ajouter la colonne "role" (admin, employee ou controleur)
+            $table->enum('role', ['admin', 'employee', 'controleur'])->default('employee');
             
             // Ajouter le matricule (numéro d'employé unique)
             $table->string('matricule', 20)->unique();

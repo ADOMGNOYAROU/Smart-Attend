@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 
-class AdminMiddleware
+class ControleurMiddleware
 {
     /**
      * Handle an incoming request.
@@ -16,8 +16,8 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check() || Auth::user()->role !== 'admin') {
-            return redirect()->route('dashboard')->with('error', 'Accès refusé. Vous devez être administrateur.');
+        if (!Auth::check() || Auth::user()->role !== 'controleur') {
+            return redirect()->route('dashboard')->with('error', 'Accès refusé. Vous devez être contrôleur.');
         }
 
         return $next($request);

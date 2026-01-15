@@ -27,6 +27,7 @@ class UserController extends Controller
         $roles = [
             'admin' => 'Administrateur',
             'manager' => 'Manager',
+            'controleur' => 'Contrôleur',
             'employee' => 'Employé'
         ];
         
@@ -57,7 +58,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,manager,employee',
+            'role' => 'required|in:admin,manager,controleur,employee',
             'matricule' => 'required|string|max:50|unique:users',
             'phone' => 'nullable|string|max:20',
             'department' => 'required|string|max:100',
@@ -148,6 +149,7 @@ class UserController extends Controller
         $roles = [
             'admin' => 'Administrateur',
             'manager' => 'Manager',
+            'controleur' => 'Contrôleur',
             'employee' => 'Employé'
         ];
         
@@ -178,7 +180,7 @@ class UserController extends Controller
                 Rule::unique('users')->ignore($user->id),
             ],
             'password' => 'nullable|string|min:8|confirmed',
-            'role' => 'required|in:admin,manager,employee',
+            'role' => 'required|in:admin,manager,controleur,employee',
             'matricule' => [
                 'required',
                 'string',
